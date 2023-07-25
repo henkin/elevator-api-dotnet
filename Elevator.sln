@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{4A
 	ProjectSection(SolutionItems) = preProject
 		Makefile = Makefile
 		README.md = README.md
+		.gitignore = .gitignore
+		dotnet.yml = ./.github/workflows/dotnet.yml
 	EndProjectSection
 EndProject
 Global

@@ -50,4 +50,8 @@ app.MapControllers();
 
 app.Run();
 
-public partial class Program { } // so you can reference it from tests
+/// <summary>
+/// A work-around for the lack of a Program class in .NET 6 minimal APIs.
+/// We need it to be able to use the WebApplicationBuilder.
+/// </summary>
+public partial class Program { } 

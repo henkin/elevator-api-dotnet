@@ -1,4 +1,5 @@
-# Elevator Control System API
+# Elevator Control System API 
+[![actions](https://github.com/henkin/elevator-api-dotnet/actions/workflows/dotnet.yml/badge.svg)]()
 
 This is an example of a Web API using ASP.NET Core with basic error handling and integration tests.
 
