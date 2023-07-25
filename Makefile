@@ -2,8 +2,6 @@
 API_PROJECT := Elevator.WebApi/Elevator.WebApi.csproj
 TEST_PROJECT := Elevator.WebApi.Tests/Elevator.WebApi.Tests.csproj
 
-# Targets
-
 deps: 
 	dotnet tool install -g dotnet-reportgenerator-globaltool || true
  
@@ -19,7 +17,12 @@ test: deps
     	-reports:"**/coverage.cobertura.xml" \
     	-targetdir:"coveragereport" \
     	-reporttypes:Html \
-    	
+
+clean:
+	rm -rf ./publish
+	rm -rf ./coveragereport	
+
+# this is just an example to demonstrate docker containerization
 deploy: build
 	dotnet publish $(API_PROJECT) -c Release -o ./publish
 	docker build -t elevator-api ./publish
@@ -27,11 +30,7 @@ deploy: build
 	docker push registry.heroku.com/elevator-api/web
 	heroku container:release web -a elevator-api
 
-load:
+# this is just an example to demonstrate a possible load test
+load: 
 	docker run -it --rm --net=host -v $(PWD)/loadtest:/var/loadtest --entrypoint /bin/sh direvius/yandex-tank
 
-clean:
-	rm -rf ./publish
-	rm -rf ./coveragereport	
-# Phony targets
-.PHONY: build run test deploy

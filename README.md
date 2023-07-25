@@ -1,11 +1,6 @@
 # Elevator Control System API 
-[![actions](https://github.com/henkin/elevator-api-dotnet/actions/workflows/dotnet.yml/badge.svg)]()
-
-This is an example of a Web API using ASP.NET Core with basic error handling and integration tests.
-
-The Elevator Control System API provides a simple interface for managing elevator requests. This API allows multiple dependent teams to integrate and test their interactions with the elevator control system efficiently.
-
-Created by [Paul Henkin](https://www.linkedin.com/in/henkin/) as a coding exercise.
+[![actions](https://github.com/henkin/elevator-api-dotnet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/henkin/elevator-api-dotnet/actions/workflows/dotnet.yml)
+[![coverage](https://camo.githubusercontent.com/6f788263511659e1bbf4340c909e96f46e71799351467caee3832851ba0da41f/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f436f6465253230436f7665726167652d39352532352d737563636573733f7374796c653d666c6174)](https://github.com/henkin/elevator-api-dotnet/actions/runs/5657306279#summary-15326067839) 
 
 ### tl;dr
 - `make run`
@@ -14,7 +9,11 @@ Created by [Paul Henkin](https://www.linkedin.com/in/henkin/) as a coding exerci
 
 ---
 
-# Elevator API - README
+This is an example of a Web API using ASP.NET Core with basic error handling, DI, unit, and integration tests, code coverage, FluentAssertions, Swagger, Makefile, and GitHub Actions.   
+
+The Elevator Control System API provides a simple interface for managing elevator requests. This API allows multiple dependent teams to integrate and test their interactions with the elevator control system efficiently.
+
+Created by [Paul Henkin](https://www.linkedin.com/in/henkin/) as a coding exercise.
 
 ## Overview
 
