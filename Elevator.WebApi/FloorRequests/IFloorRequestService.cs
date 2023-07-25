@@ -1,5 +1,8 @@
 namespace Elevator.WebApi.Controllers;
 
+/// <summary>
+/// IFloorRequestService interface for managing elevator floor requests.
+/// </summary>
 public interface IFloorRequestService
 {
     /// <summary>

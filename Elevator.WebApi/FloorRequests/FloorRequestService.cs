@@ -21,10 +21,7 @@ public enum ElevatorTravelDirection
     Down = 2,
 }
 
-/// <summary>
-/// The backing store for the floor requests, which is injected into the controller.
-/// For now, keep it simple and just use a list of integers. 
-/// </summary>
+/// <inheritdoc />
 public class FloorRequestService : IFloorRequestService
 {
     private readonly List<int> _outstandingRequests = new();
@@ -34,7 +31,8 @@ public class FloorRequestService : IFloorRequestService
     {
         if (floorNumber <= 0)
         {
-            throw new ArgumentException("Invalid floor number. Floor number must be a positive integer.", nameof(floorNumber));
+            throw new ArgumentException("Invalid floor number. Floor number must be a positive integer.",
+                nameof(floorNumber));
         }
 
         if (!_outstandingRequests.Contains(floorNumber))
@@ -54,7 +52,8 @@ public class FloorRequestService : IFloorRequestService
     {
         if (floorNumber <= 0)
         {
-            throw new ArgumentException("Invalid floor number. Floor number must be a positive integer.", nameof(floorNumber));
+            throw new ArgumentException("Invalid floor number. Floor number must be a positive integer.",
+                nameof(floorNumber));
         }
 
         // if floorNumber is not in the list, return false, otherwise remove it and return true
@@ -62,14 +61,14 @@ public class FloorRequestService : IFloorRequestService
         {
             return false;
         }
-        
+
         _outstandingRequests.Remove(floorNumber);
         return true;
     }
 
     /// <inheritdoc />
     public async Task<int?> GetNextFloorToStopAsync(
-        int currentFloor, 
+        int currentFloor,
         ElevatorTravelDirection currentElevatorTravelDirection,
         CancellationToken cancellationToken = default)
     {
@@ -78,24 +77,41 @@ public class FloorRequestService : IFloorRequestService
             return null;
         }
 
-        // Calculate the next stop based on the current direction of travel
-        int nextFloor;
-        switch (currentElevatorTravelDirection)
+        if (currentElevatorTravelDirection == ElevatorTravelDirection.Stationary) 
         {
-            case ElevatorTravelDirection.Up:
-                nextFloor = _outstandingRequests.Where(floor => floor > currentFloor).Min();
-                break;
-            case ElevatorTravelDirection.Down:
-                nextFloor = _outstandingRequests.Where(floor => floor < currentFloor).Max();
-                break;
-            default:
-            {
-                // If the elevator is stationary, find the closest floor in any direction
-                nextFloor = _outstandingRequests.OrderBy(floor => Math.Abs(floor - currentFloor)).First();
-                break;
-            }
+            return _outstandingRequests.OrderBy(floor => Math.Abs(floor - currentFloor)).FirstOrDefault();
         }
-        
-        return nextFloor;
+        var requestsInDirection = GetRequestsInDirection(currentFloor, currentElevatorTravelDirection);
+
+        if (requestsInDirection.Any())
+        {
+            return currentElevatorTravelDirection == ElevatorTravelDirection.Up
+                ? requestsInDirection.Min()
+                : requestsInDirection.Max();
+        }
+
+        var oppositeDirection = GetOppositeDirection(currentElevatorTravelDirection);
+        var requestsInOppositeDirection = GetRequestsInDirection(currentFloor, oppositeDirection);
+
+        if (requestsInOppositeDirection.Any())
+        {
+            return oppositeDirection == ElevatorTravelDirection.Up
+                ? requestsInOppositeDirection.Min()
+                : requestsInOppositeDirection.Max();
+        }
+
+        return null;
+    }
+
+    private IEnumerable<int> GetRequestsInDirection(int currentFloor, ElevatorTravelDirection direction)
+    {
+        return direction == ElevatorTravelDirection.Up
+            ? _outstandingRequests.Where(floor => floor > currentFloor)
+            : _outstandingRequests.Where(floor => floor < currentFloor);
+    }
+
+    private ElevatorTravelDirection GetOppositeDirection(ElevatorTravelDirection direction)
+    {
+        return direction == ElevatorTravelDirection.Up ? ElevatorTravelDirection.Down : ElevatorTravelDirection.Up;
     }
 }
