@@ -19,17 +19,6 @@ public interface IFloorRequestService
     Task<List<int>> GetOutstandingRequestsAsync(CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Removes a floor request from the list of outstanding requests.
-    /// If the floorNumber is not in the list, return false.
-    /// If the floorNumber is in the list, remove it and return true.
-    /// </summary>
-    /// <param name="floorNumber">Floor number to remove.</param>
-    /// <param name="cancellationToken">(optional) cancellation token for more complex implementations.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException">If floorNumber is 0 or negative.</exception>
-    Task<bool> RemoveFloorRequestAsync(int floorNumber, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Gets the next floor to stop at, based on the current floor and direction of travel.
     /// If the outstandingRequests list is empty, return null.
     /// If currentFloor is a floor in outstandingRequests, skip it, and return the next one in the direction of travel.
@@ -42,4 +31,15 @@ public interface IFloorRequestService
         int currentFloor, 
         ElevatorTravelDirection currentElevatorTravelDirection,
         CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Removes a floor request from the list of outstanding requests.
+    /// If the floorNumber is not in the list, return false.
+    /// If the floorNumber is in the list, remove it and return true.
+    /// </summary>
+    /// <param name="floorNumber">Floor number to remove.</param>
+    /// <param name="cancellationToken">(optional) cancellation token for more complex implementations.</param>
+    /// <returns>True if floor removed, false otherwise</returns>
+    /// <exception cref="ArgumentException">If floorNumber is 0 or negative.</exception>
+    Task<bool> RemoveFloorRequestAsync(int floorNumber, CancellationToken cancellationToken = default);
 }

@@ -90,12 +90,13 @@ public class FloorRequestsControllerIntegrationTests : IClassFixture<WebApplicat
 
     [Theory]
     [InlineData(ElevatorTravelDirection.Up, new int[] { }, 5, null)] // No requests, next floor is empty
-    [InlineData(ElevatorTravelDirection.Down, new int[] { }, 0, null)] // No requests, next floor is empty
+    [InlineData(ElevatorTravelDirection.Down, new int[] { }, 1, null)] // No requests, next floor is empty
     [InlineData(ElevatorTravelDirection.Up, new[] { 5, 10, 15 }, 10, 15)] // Valid next floor is 15
     [InlineData(ElevatorTravelDirection.Down, new[] { 5, 10, 15 }, 9, 5)] // Valid next floor is 5
+    [InlineData(ElevatorTravelDirection.Up, new[] { 5 }, 10, 5)] // Valid next floor is 15
+    [InlineData(ElevatorTravelDirection.Down, new[] { 5 }, 4, 5)] // Valid next floor is 5
     [InlineData(ElevatorTravelDirection.Stationary, new[] { 5, 10, 15 }, 10, 10)] // Elevator is stationary, next floor is the closest one
     [InlineData(ElevatorTravelDirection.Stationary, new int[] { }, 5, null)] // Elevator is stationary, no matching requests, next floor is null
-
     public async Task GetNextFloorToStopConditions(
         ElevatorTravelDirection direction,
         int[] requestedFloors,

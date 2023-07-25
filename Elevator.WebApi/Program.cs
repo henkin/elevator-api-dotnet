@@ -1,15 +1,35 @@
-                                 
+using System.Text.Json.Serialization;
 using Elevator.WebApi.Controllers;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IFloorRequestService, FloorRequestService>();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Elevator API",
+        Version = "v1",
+        Description = "API for managing elevator floor requests",
+        Contact = new OpenApiContact
+        {
+            Name = "Paul Henkin",
+            Email = "talktopaul@gmail.com",
+        },
+    });
+
+    // // Add XML comments for better documentation
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+    
+});
 
 var app = builder.Build();
 

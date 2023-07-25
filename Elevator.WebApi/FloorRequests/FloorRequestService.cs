@@ -1,9 +1,23 @@
 namespace Elevator.WebApi.Controllers;
 
+/// <summary>
+/// Elevator travel direction.
+/// </summary>
 public enum ElevatorTravelDirection
 {
+    /// <summary>
+    /// Elevator is stationary.
+    /// </summary>
     Stationary = 0,
+    
+    /// <summary>
+    /// Up direction.
+    /// </summary>
     Up = 1,
+    
+    /// <summary>
+    /// Down direction.
+    /// </summary>
     Down = 2,
 }
 
@@ -23,7 +37,10 @@ public class FloorRequestService : IFloorRequestService
             throw new ArgumentException("Invalid floor number. Floor number must be a positive integer.", nameof(floorNumber));
         }
 
-        _outstandingRequests.Add(floorNumber);
+        if (!_outstandingRequests.Contains(floorNumber))
+        {
+            _outstandingRequests.Add(floorNumber);
+        }
     }
 
     /// <inheritdoc />
