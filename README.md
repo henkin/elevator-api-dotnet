@@ -1,173 +1,157 @@
-# [Paul Henkin](https://www.linkedin.com/in/henkin/) Elevator Control System API 
+# Elevator Control System API 
+
+This is an example of a Web API using aspnet core with basic error handling and integration tests.
 
 The Elevator Control System API provides a simple interface for managing elevator requests. This API allows multiple dependent teams to integrate and test their interactions with the elevator control system efficiently.
 
-> TL;DR: 
-> 1. `make run`
-> 2. [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html) to access the Swagger UI.
+Created by [Paul Henkin](https://www.linkedin.com/in/henkin/) as a coding exercise.
 
-_talktopaul@gmail.com_
+### tl;dr 
+- `make run`
+- [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html) to access the Swagger UI.
+---
 
-## Table of Contents
+## Overview
 
-- [Introduction](#introduction)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-    - [Building the Solution](#building-the-solution)
-    - [Running the API](#running-the-api)
-    - [Running the Tests](#running-the-tests)
-- [API Endpoints](#api-endpoints)
-    - [POST /floor-requests](#post-floor-requests)
-    - [GET /floor-requests](#get-floor-requests)
-    - [GET /floor-requests/next](#get-floor-requestsnext)
-    - [DELETE /floor-requests/{id}](#delete-floor-requestsid)
+The Elevator API is a RESTful web service that provides functionalities to manage elevator floor requests. The API allows users to request an elevator to a specific floor, view all outstanding floor requests, get the next floor to stop at based on the current direction of the elevator, and remove fulfilled floor requests.
 
-## Introduction
+The API is implemented using .NET Core and exposes endpoints that can be accessed through HTTP requests. The solution includes both the API project (`Elevator.WebApi`) and the unit tests project (`Elevator.WebApi.Tests`).
 
-The Elevator Control System API allows clients to request elevator services and retrieve information about the pending elevator requests. It's designed to provide a minimal set of functionalities to unblock the integration of other teams while allowing flexibility for future extension.
+## Requirements
 
-The API supports the following scenarios:
+The API is designed to meet the following requirements:
 
-1. A person can request an elevator to be sent to their current floor.
-2. A person can request to be brought to a specific floor.
-3. An elevator car can request the floors that its current passengers are servicing.
-4. An elevator car can request the next floor it needs to service.
+1. Provide endpoints to request an elevator to a specific floor, view all outstanding floor requests, get the next floor to stop at based on the current direction of the elevator, and remove fulfilled floor requests.
 
-The API is built using ASP.NET Core and includes Swagger/OpenAPI documentation for easy exploration and integration.
+2. Support integration testing with a dedicated endpoint to run unit tests and generate test coverage reports.
 
-## Prerequisites
+## Usage
 
-To use the Elevator Control System API, you need the following:
+### Build the Solution
 
-- .NET Core SDK 5.0 or higher
-- Make (optional but recommended for easy command execution)
+To build the Elevator API solution, use the following command:
 
-## Getting Started
+```bash
+make build
+```
 
-Follow the steps below to build, run, and test the Elevator Control System API.
+### Run the API
 
-### Running the API
-
-To run the API, open a terminal in the root of the `Elevator` solution folder and run the following command:
+To run the Elevator API locally, use the following command:
 
 ```bash
 make run
 ```
 
-Alternatively, you can run the following command without using Make:
-
-```bash
-dotnet run --project Elevator/Elevator.WebApi/Elevator.WebApi.csproj
-```
-
 The API will be available at `http://localhost:8080`.
 
-### Running the Tests
+### Run Unit Tests
 
-To run the tests for the API, open a terminal in the root of the `Elevator` solution folder and run the following command:
+To run unit tests for the API, use the following command:
 
 ```bash
 make test
 ```
 
-Alternatively, you can run the following command without using Make:
+This command will run all the unit tests and generate a code coverage report in HTML format. The coverage report will be available in the [`coveragereport` directory](./coveragereport/).
+
+### Deploy the API
+
+To deploy the API to Heroku, use the following command:
 
 ```bash
-dotnet test Elevator/Elevator.WebApi.Tests/Elevator.WebApi.Tests.csproj
+make deploy
 ```
 
-## Assumptions and Corner Cases
+This command will build the Docker image, tag it with the appropriate name, and push it to the Heroku container registry. Finally, it will release the container to the Heroku app named `elevator-api`.
 
-While designing the Elevator Control System API, the following assumptions have been made:
+### Load Testing
 
-1. **Floor Number Validation**: It is assumed that floor numbers must be positive integers. Negative floor numbers and zero are considered invalid inputs and will result in a `400 Bad Request` response when making a request to create a floor request.
+To perform load testing using Yandex.Tank, use the following command:
 
-2. **Direction of Travel**: The API supports three directions of travel: "Up", "Down", and "Stationary." The elevator is considered stationary when there are no outstanding requests. If an invalid direction is provided in the `GetNextFloorToStop` endpoint, an `InvalidOperationException` will be thrown.
+```bash
+make load
+```
 
-3. **Nearest Floor in Opposite Direction**: When the elevator is stationary, and there are no requests in the current direction of travel, it will find the nearest floor in the opposite direction. If no requests exist in either direction, the API will return `204 No Content`.
-
-4. **Duplicate Requests**: The API does not prevent duplicate floor requests for the same floor. If a floor is requested multiple times, it will be serviced as separate requests, but not added multiple times. 
-
-5. **Concurrent Requests**: The API is designed to handle multiple concurrent requests from different clients. The underlying service should be thread-safe to manage concurrent access to the list of outstanding requests.
-
-6. **Deleting Fulfilled Requests**: When calling the `DELETE` endpoint to remove a fulfilled request, the API will return `200 OK` if the request was successfully deleted and `404 Not Found` if the specified ID does not match any outstanding requests.
-
-7. **Error Handling**: The API includes error handling for various scenarios, such as invalid floor numbers, missing elevator requests, and incorrect endpoint usage. It returns appropriate HTTP status codes and error messages to help clients identify and handle errors.
-
-By keeping these assumptions and corner cases in mind, clients can effectively integrate and test their interactions with the Elevator Control System API, ensuring smooth and reliable elevator operations.
+This command will run Yandex.Tank using the load test configuration in the `loadtest` directory.
 
 ## API Endpoints
 
-The Elevator Control System API provides the following endpoints:
+The Elevator API exposes the following endpoints:
 
-### POST /floor-requests
+### 1. Request an Elevator to a Specific Floor
 
-Creates a new floor request to call an elevator to the specified floor.
+**Endpoint:** POST `/floor-requests`
 
-#### Request
+**Request Body:**
+```
+5
+```
 
-- Method: POST
-- Endpoint: `/floor-requests`
-- Body: Integer representing the floor number
-
-#### Response
-
-- 200 OK: The floor request was successfully created.
+**Response:**
+- 200 OK: The floor request was successfully added.
 - 400 Bad Request: If the floor number is not a positive integer.
 
-### GET /floor-requests
+### 2. View All Outstanding Floor Requests
 
-Retrieves the list of outstanding elevator floor requests.
+**Endpoint:** GET `/floor-requests`
 
-#### Request
+**Response:**
+- 200 OK: Returns a list of all outstanding floor requests.
 
-- Method: GET
-- Endpoint: `/floor-requests`
+### 3. Get Next Floor to Stop At
 
-#### Response
+**Endpoint:** GET `/floor-requests/next`
 
-- 200 OK: Returns a JSON array containing the list of outstanding elevator floor requests.
+**Query Parameters:**
+- `currentFloor` [int]: The current floor of the elevator.
+- `elevatorTravelDirection` [string, optional]: The current direction of the elevator (`"Up"`, `"Down"`, or `"Stationary"`).
 
-### GET /floor-requests/next
+**Response:**
+- 200 OK: Returns the next floor to stop at based on the current direction of the elevator.
+- 204 No Content: If there are no outstanding requests in the specified direction.
 
-Retrieves the next floor the elevator needs to stop at based on the current floor and direction of travel.
+### 4. Remove Fulfilled Floor Request
 
-#### Request
+**Endpoint:** DELETE `/floor-requests/{id}`
 
-- Method: GET
-- Endpoint: `/floor-requests/next`
-- Query Parameters:
-    - `currentFloor`: Integer representing the current floor of the elevator.
-    - `elevatorTravelDirection` (optional): The current direction of travel for the elevator. (Values: "Up", "Down", or "Stationary")
+**Path Parameter:**
+- `id` [int]: The ID of the fulfilled floor request to be removed.
 
-#### Response
+**Response:**
+- 200 OK: The floor request was successfully removed.
+- 404 Not Found: If the specified floor request ID does not exist.
 
-- 200 OK: Returns the next floor the elevator needs to stop at.
-- 204 No Content: If there are no more outstanding requests in the specified direction.
+## Assumptions
 
-### DELETE /floor-requests/{id}
+1. The Elevator API assumes that the input floor numbers are positive integers greater than zero.
 
-Deletes a fulfilled elevator floor request by its ID.
+2. The Elevator API handles the scenario where there are no outstanding floor requests and returns appropriate responses.
 
-#### Request
+3. If the elevator is stationary, the API returns the closest floor in any direction as the next stop.
 
-- Method: DELETE
-- Endpoint: `/floor-requests/{id}`
-- Path Parameter: `id` (Integer) - The ID of the fulfilled request to be deleted.
+4. If there are no outstanding requests in the current direction of travel, the API goes to the nearest opposite direction floor.
 
-#### Response
+5. The API supports integration testing using the provided Makefile and Docker.
 
-- 200 OK: The request was successfully deleted.
-- 404 Not Found: If the specified ID does not match any outstanding requests.
+6. The API is deployable to Heroku using the provided Makefile.
 
-## Swagger/OpenAPI Documentation
+## Use Cases
 
-The Elevator Control System API includes Swagger documentation that allows easy exploration and testing of the API endpoints. To access the Swagger documentation, run the API and navigate to the following URL in your browser:
+The Elevator API is designed to satisfy the following use cases:
 
-```
-http://localhost:8080/swagger/index.html
-```
+1. **Request an Elevator:** Users can request an elevator to a specific floor by providing the floor number. The API ensures that the floor number is a positive integer greater than zero.
 
-The Swagger UI will provide a user-friendly interface to interact with the API endpoints, view request/response examples, and get familiar with the API's capabilities.
+2. **View Outstanding Requests:** The API allows users to view all outstanding floor requests.
 
-That's it! You now have the Elevator Control System API up and running, along with the tools to explore and test its endpoints. Happy elevator controlling! 🛗
+3. **Get Next Floor to Stop:** Users can get the next floor for the elevator to stop at based on the current direction of travel. If there are no requests in the current direction, the API goes to the nearest opposite direction floor.
+
+4. **Remove Fulfilled Request:** Users can remove a fulfilled floor request by providing the ID of the request.
+
+5. **Unit Testing:** The API supports comprehensive unit testing with code coverage reports.
+
+6. **Integration Testing:** The provided Makefile allows for easy integration testing of the API.
+
+> Future:
+> 7. **Containerization and Deployment:** The API >can be containerized using Docker and deployed to Heroku with a single command.
+
