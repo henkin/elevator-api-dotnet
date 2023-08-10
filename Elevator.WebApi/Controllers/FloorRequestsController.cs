@@ -10,14 +10,17 @@ namespace Elevator.WebApi.Controllers;
 public class FloorRequestsController : ControllerBase
 {
     private readonly IFloorRequestService _floorRequestService;
+    private readonly ILogger<FloorRequestsController> _logger;
 
     /// <summary>
     /// Constructor for the FloorRequestsController.
     /// </summary>
     /// <param name="floorRequestService">The service backing floor requests.</param>
-    public FloorRequestsController(IFloorRequestService floorRequestService)
+    /// <param name="logger"></param>
+    public FloorRequestsController(IFloorRequestService floorRequestService, ILogger<FloorRequestsController> logger)
     {
         _floorRequestService = floorRequestService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -40,10 +43,12 @@ public class FloorRequestsController : ControllerBase
     {
         if (floorNumber <= 0)
         {
+            _logger.LogWarning("Invalid floor request received for floor number {FloorNumber}", floorNumber);
             return BadRequest("Invalid floor number. Floor number must be a positive integer.");
         }
-            
-        // Add the floor request to the list of outstanding requests
+
+        _logger.LogInformation("Processing elevator request for floor number {FloorNumber}", floorNumber);
+
         await _floorRequestService.AddFloorRequestAsync(floorNumber);
 
         return Ok();
@@ -66,6 +71,7 @@ public class FloorRequestsController : ControllerBase
     public async Task<IActionResult> GetOutstandingRequests()
     {
         // Return the list of outstanding requests to the elevator car
+        _logger.LogInformation("Fetching outstanding elevator requests");
         return Ok(await _floorRequestService.GetOutstandingRequestsAsync());
     }
 
@@ -91,14 +97,24 @@ public class FloorRequestsController : ControllerBase
     {
         if (currentFloor <= 0)
         {
+            _logger.LogWarning("Invalid current floor provided {CurrentFloor}", currentFloor);
             return BadRequest("Invalid floor number. Floor number must be a positive integer.");
         }
-        
+
+        _logger.LogInformation(
+            "Fetching next floor to stop from current floor {CurrentFloor} with travel direction {TravelDirection}",
+            currentFloor, 
+            elevatorTravelDirection);
+
         int? nextFloor = await _floorRequestService.GetNextFloorToStopAsync(currentFloor, elevatorTravelDirection);
 
         if (nextFloor == null)
         {
             // No further requests in the specified direction; empty response
+            _logger.LogInformation(
+                "No matching requests found for current floor {CurrentFloor} and direction {TravelDirection}",
+                currentFloor, 
+                elevatorTravelDirection);
             return NoContent();
         }
 
@@ -123,13 +139,16 @@ public class FloorRequestsController : ControllerBase
     [HttpDelete("{floorNumber}")]
     public async Task<IActionResult> DeleteFulfilledRequest(int floorNumber)
     {
+        _logger.LogInformation("Attempting to delete fulfilled request for floor number {FloorNumber}", floorNumber);
         bool isDeleted = await _floorRequestService.RemoveFloorRequestAsync(floorNumber);
 
         if (isDeleted)
         {
+            _logger.LogInformation("Successfully deleted request for floor number {FloorNumber}", floorNumber);
             return Ok();
         }
 
+        _logger.LogWarning("Request for floor number {FloorNumber} not found", floorNumber);
         return NotFound();
     }
 }

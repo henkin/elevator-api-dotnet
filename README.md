@@ -9,7 +9,7 @@
 
 ---
 
-This is an example of a Web API using ASP.NET Core with basic error handling, DI, unit, and integration tests, code coverage, FluentAssertions, Swagger, Makefile, and GitHub Actions.   
+This is an example of a Web API using ASP.NET Core with basic error handling, DI, logging (using Serilog), unit and integration tests, code coverage, FluentAssertions, Swagger, Makefile, and GitHub Actions.   
 
 The Elevator Control System API provides a simple interface for managing elevator requests. This API allows multiple dependent teams to integrate and test their interactions with the elevator control system efficiently.
 
