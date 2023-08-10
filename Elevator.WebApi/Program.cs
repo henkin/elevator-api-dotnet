@@ -1,54 +1,84 @@
 using System.Text.Json.Serialization;
 using Elevator.WebApi.Controllers;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
-var builder = WebApplication.CreateBuilder(args);
+// Bootstrap Serilog logger before creating the host
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-// Add services to the container.
-builder.Services.AddControllers()
-    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
-
-builder.Services.AddSingleton<IFloorRequestService, FloorRequestService>();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+try
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Elevator API",
-        Version = "v1",
-        Description = "API for managing elevator floor requests",
-        Contact = new OpenApiContact
-        {
-            Name = "Paul Henkin",
-            Email = "talktopaul@gmail.com",
-        },
-    });
+    var builder = WebApplication.CreateBuilder(args);
 
-    // // Add XML comments for better documentation
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
+    // Bootstrap pt 2: Configure Serilog
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services), 
+        writeToProviders: true);
     
-});
+    // Add services to the container.
+    builder.Services.AddControllers()
+        // Allow enums to be serialized as strings
+        .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
 
-var app = builder.Build();
+    builder.Services.AddSingleton<IFloorRequestService, FloorRequestService>();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(ConfigureSwagger());
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var app = builder.Build();
+    app.UseSerilogRequestLogging(); // Optional: Log HTTP requests
+    
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+    else
+    {
+        app.UseHttpsRedirection();
+    }
+
+    app.UseAuthorization();
+    app.MapControllers();
+    app.Run();
 }
-else
+catch (Exception ex)
 {
-    app.UseHttpsRedirection();
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
-app.UseAuthorization();
+Action<SwaggerGenOptions> ConfigureSwagger()
+{
+    return c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "Elevator API",
+            Version = "v1",
+            Description = "API for managing elevator floor requests",
+            Contact = new OpenApiContact
+            {
+                Name = "Paul Henkin",
+                Email = "talktopaul@gmail.com",
+            },
+        });
 
-app.MapControllers();
-
-app.Run();
+        // // Add XML comments for better documentation
+        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath);
+    };
+}
 
 /// <summary>
 /// A work-around for the lack of a Program class in .NET 6 minimal APIs.
